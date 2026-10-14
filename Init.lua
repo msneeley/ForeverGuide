@@ -4,8 +4,7 @@ local _, FG = ...
 local function defaults()
     ForeverGuideDB = ForeverGuideDB or {}
     if ForeverGuideDB.auto == nil then ForeverGuideDB.auto = true end
-    -- quest sharing is off by default (the group asked); switch existing installs off once
-    if not ForeverGuideDB.shareDefaultOff then ForeverGuideDB.share = false; ForeverGuideDB.shareDefaultOff = true end
+    if ForeverGuideDB.share == nil then ForeverGuideDB.share = true end
     if ForeverGuideDB.autoReward == nil then ForeverGuideDB.autoReward = true end
     FG:OptionDefaults()
 
