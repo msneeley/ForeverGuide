@@ -8,7 +8,7 @@ FG.optionList = {
     { "showArrow",  "Waypoint arrow",                    "The arrow pointing at the current step" },
     { "auto",       "Auto accept / turn in quests",      "Hold Shift at an NPC to do it by hand" },
     { "autoReward", "Auto pick quest rewards",           "Uses the guide's pick, or your class's best stats" },
-    { "share",      "Auto share quests with the group",  "Shares guide quests you accept" },
+    { "share",      "Auto share quests with the group",  "Shares guide quests you accept (off by default)", default = false },
     { "showGroup",  "Group panel",                       "Party levels, XP, professions, food, hearth, durability" },
     { "bagIcons",   "Bag dots",                          "Gold: you need. Blue: party needs. Green: party upgrade. Purple: your upgrade" },
     { "upgradeDots","Upgrade checks",                    "Green / purple dots and tooltip lines for gear upgrades" },
@@ -25,7 +25,7 @@ function FG:OptionDefaults()
     local db = ForeverGuideDB
     if db.showGuide == nil then db.showGuide = not db.hidden end
     for _, o in ipairs(self.optionList) do
-        if db[o[1]] == nil then db[o[1]] = true end
+        if db[o[1]] == nil then db[o[1]] = o.default ~= false end
     end
 end
 
@@ -157,7 +157,7 @@ local function buildWelcome()
         "|cffffd100Welcome!|r Here's what ForeverGuide does for your group:",
         "",
         "|cff66ccff-|r Step-by-step route with an arrow, solo to 12, then all five together",
-        "|cff66ccff-|r Auto accept, turn in and share quests (hold Shift to do it by hand)",
+        "|cff66ccff-|r Auto accept and turn in quests (hold Shift to do it by hand)",
         "|cff66ccff-|r Party panel, buff bar with roles, and bag dots for what to keep or trade",
         "|cff66ccff-|r Talent, trainer, profession, food and potion recommendations",
         "",

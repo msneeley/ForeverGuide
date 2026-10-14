@@ -31,7 +31,7 @@ number on the `## Interface:` line of `ForeverGuide.toc`.
 | `/fg prof` | First Aid / Cooking / Fishing targets by level, and trainers on the route |
 | `/fg keep` | What the green [Keep] line in item tooltips marks |
 | `/fg pots` | Best elixirs and potions you can make for your level and Alchemy skill |
-| `/fg share` | Toggle auto-sharing guide quests with your group (on by default) |
+| `/fg share` | Toggle auto-sharing guide quests with your group (off by default) |
 | `/fg reward` | Toggle picking quest rewards by your class's stats when a step has no pick (on by default) |
 
 ## Step format
@@ -81,7 +81,7 @@ bag icons. Someone who only wants the group panel can turn everything else off.
 Everyone installs the addon. Each player follows their own starting-zone guide,
 then everyone meets at **the Crossroads at level 12** and loads the same group
 guides (12-35). Steps marked for a class or race only show for those players.
-Quests you accept from the guide are shared with the group automatically.
+Quest sharing is off by default; `/fg share` turns on sharing each guide quest you accept with the group.
 
 ## Guides
 | Who | Guides |
