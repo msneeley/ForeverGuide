@@ -1,0 +1,4 @@
+<Bindings>
+    <Binding name="CLICK ForeverGuideTotemEarth:LeftButton" header="FOREVERGUIDE" category="ADDONS"/>
+    <Binding name="CLICK ForeverGuideTotemAir:LeftButton" category="ADDONS"/>
+</Bindings>
