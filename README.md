@@ -314,7 +314,7 @@ XP and its quests' XP when you hand them in. Saved account-wide, so any characte
   your characters side by side for those levels  ·  /fg xp reset - clear this character's log
 - /fg xp verdict - each dungeon run's XP per hour (time inside + finding a group, from the guide's
   "Look for a group" step) against your open-world questing at the same levels (+-1), and which wins.
-- Checkpoints: at levels 22 and 25 (change with /fg xp milestones 22 25) a report window pops up by
+- Checkpoints: at levels 12, 16, 21, 25, 30 and 35 - the end of each guide section (change with /fg xp milestones 12 16 ...) a report window pops up by
   itself with the verdict, the per-level log and your runs - copy it (Ctrl+A, Ctrl+C) or screenshot.
   /fg xp report opens it any time. Leaving a dungeon prints a one-line summary of the run.
 

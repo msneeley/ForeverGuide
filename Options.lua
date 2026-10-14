@@ -18,6 +18,7 @@ FG.optionList = {
     { "nearby",     "Nearby quests when off the route",  "Suggests quests around you for your level when you're away from the guide (/fg nearby)" },
     { "craftHelper","Crafting for the party",            "Leatherworking/Tailoring/Blacksmithing upgrades for the group (/fg craft)" },
     { "showBuffs",  "Buff bar",                          "Red when you're missing food, camp, class buffs or elixirs (/fg buffs)" },
+    { "xpReports",  "XP report reminders",               "At 12, 16, 21, 25, 30, 35 the XP report pops up to send in (/fg xp report any time)" },
 }
 
 function FG:OptionDefaults()

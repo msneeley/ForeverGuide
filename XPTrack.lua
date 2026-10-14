@@ -13,7 +13,8 @@
 -- /fg xp report     everything in a window you can copy or screenshot (ends with spreadsheet rows)
 -- /fg xp export     just the spreadsheet rows
 -- /fg xp run 2      which experiment run this character is (default 1)
--- /fg xp milestones 22 25   levels where that window pops up by itself (default 22 and 25)
+-- /fg xp milestones 12 16   levels where that window pops up by itself (default: the end of each
+--                           guide section, 12 16 21 25 30 35 - the tracker sheet's level ranges)
 -- /fg xp reset      clear this character's log
 local _, FG = ...
 
@@ -341,22 +342,33 @@ function FG:ShowXPReport(title, rowsOnly)
     return lines
 end
 
--- Levels that pop the report automatically (once each, per character)
+-- Levels that pop the report automatically (once each, per character): the end of
+-- each guide section, which are the tracker sheet's level ranges
+local DEFAULT_MILESTONES = { 12, 16, 21, 25, 30, 35 }
+local function milestones()
+    local c = ForeverGuideCharDB
+    -- the old default (22, 25) predates the sheet
+    if c.xpMilestones and #c.xpMilestones == 2 and c.xpMilestones[1] == 22 and c.xpMilestones[2] == 25 then c.xpMilestones = nil end
+    return c.xpMilestones or DEFAULT_MILESTONES
+end
 local function checkMilestones(newLevel)
     local c = ForeverGuideCharDB
-    if not c then return end
-    c.xpMilestones = c.xpMilestones or { 22, 25 }
+    if not c or not log or not log.started then return end   -- only characters being tracked
+    if ForeverGuideDB.xpReports == false then return end
     c.xpMilestonesDone = c.xpMilestonesDone or {}
-    for _, m in ipairs(c.xpMilestones) do
-        if newLevel >= m and not c.xpMilestonesDone[m] then
-            c.xpMilestonesDone[m] = true
-            C_Timer.After(3, function()
-                FG:ShowXPReport(("Experiment checkpoint - level %d"):format(m))
-                FG:Print(("|cffffd100Level %d checkpoint:|r your XP report is open - send it over (copy or screenshot)."):format(m))
-            end)
-            break
-        end
+    local due = false
+    for _, m in ipairs(milestones()) do   -- one window even if several were passed
+        if newLevel >= m and not c.xpMilestonesDone[m] then c.xpMilestonesDone[m] = true; due = true end
     end
+    if not due then return end
+    C_Timer.After(3, function()
+        FG:ShowXPReport(("XP report time - level %d"):format(newLevel))
+        FG:Print(("|cffffd100Level %d: time for your XP report.|r The window is open - click the text, Ctrl+A, Ctrl+C, and send it in. (/fg xp report reopens it)"):format(newLevel))
+        if RaidNotice_AddMessage and RaidWarningFrame and ChatTypeInfo then
+            RaidNotice_AddMessage(RaidWarningFrame, ("Level %d - time to send your XP report"):format(newLevel), ChatTypeInfo["RAID_WARNING"])
+        end
+        if PlaySound and SOUNDKIT and SOUNDKIT.READY_CHECK then PlaySound(SOUNDKIT.READY_CHECK) end
+    end)
 end
 FG.CheckXPMilestones = checkMilestones
 
@@ -381,7 +393,7 @@ function FG:XPCommand(rest)
             ForeverGuideCharDB.xpMilestonesDone = {}
         end
         local shown = {}
-        for _, n in ipairs(ForeverGuideCharDB.xpMilestones or { 22, 25 }) do table.insert(shown, n) end
+        for _, n in ipairs(milestones()) do table.insert(shown, n) end
         self:Print("XP report pops up at level(s): " .. table.concat(shown, ", "))
     elseif rest == "reset" then
         ForeverGuideDB.xpLog[key()] = { levels = {}, runs = {} }

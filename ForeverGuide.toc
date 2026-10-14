@@ -2,7 +2,7 @@
 ## Title: ForeverGuide
 ## Notes: Group leveling companion: party panel, keep icons, and an optional step-by-step guide with arrow and quest automation.
 ## Author: Matthew & friends
-## Version: 0.12.7
+## Version: 0.12.8
 ## SavedVariables: ForeverGuideDB
 ## SavedVariablesPerCharacter: ForeverGuideCharDB
 
