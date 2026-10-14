@@ -8,6 +8,12 @@ local PREFIX = "FGRP"
 local VERSION = "1"
 local SEP, LIST = "\t", ";"
 
+-- Dungeon Finder groups only hear addon messages on INSTANCE_CHAT (PARTY goes nowhere for pugs)
+local function groupChannel()
+    if LE_PARTY_CATEGORY_INSTANCE and IsInGroup and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then return "INSTANCE_CHAT" end
+    return (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+end
+
 FG.groupData = {}   -- [name] = { level, xp, xpMax, rested, zone, step, fed, food, hearth, dur, bags, profs = {...}, seen }
 
 ---------------------------------------------------------------------------
@@ -207,7 +213,7 @@ function FG:BroadcastCraftOffers(force)
     if not force and text == lastOffers and gather == self.lastGather then return end
     lastOffers = text
     self.lastGather = gather
-    local channel = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+    local channel = groupChannel()
     C_ChatInfo.SendAddonMessage(PREFIX, table.concat({ "C", VERSION, text }, SEP), channel)
     C_ChatInfo.SendAddonMessage(PREFIX, table.concat({ "G", VERSION, gather }, SEP), channel)
 end
@@ -220,7 +226,7 @@ function FG:SendHave()
     if #text > 230 then text = text:sub(1, 230):gsub(";[^;]*$", "") end
     if text == lastHave then return end
     lastHave = text
-    local channel = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+    local channel = groupChannel()
     C_ChatInfo.SendAddonMessage(PREFIX, table.concat({ "H", VERSION, text }, SEP), channel)
 end
 
@@ -230,7 +236,7 @@ function FG:BroadcastNeeds(force)
     local joined = table.concat(chunks, "|")
     if not force and joined == lastNeeds then return end
     lastNeeds = joined
-    local channel = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+    local channel = groupChannel()
     for i, chunk in ipairs(chunks) do
         C_ChatInfo.SendAddonMessage(PREFIX, table.concat({ "N", VERSION, i .. "/" .. #chunks, chunk }, SEP), channel)
     end
@@ -244,7 +250,7 @@ function FG:BroadcastGroupInfo(force)
     end
     if not force and GetTime() - lastSent < 5 then return end
     lastSent = GetTime()
-    local channel = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+    local channel = groupChannel()
     local info = self:MyGroupInfo()
     C_ChatInfo.SendAddonMessage(PREFIX, self:EncodeStatus(info), channel)
     local profs = self:EncodeProfs(info)
@@ -295,7 +301,7 @@ end
 
 function FG:SendRole(name, role)
     if not (IsInGroup and IsInGroup()) or not (C_ChatInfo and C_ChatInfo.SendAddonMessage) then return end
-    local channel = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+    local channel = groupChannel()
     C_ChatInfo.SendAddonMessage(PREFIX, table.concat({ "O", VERSION, name, role }, SEP), channel)
 end
 
@@ -314,7 +320,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
         C_Timer.NewTicker(30, function() FG:BroadcastGroupInfo(true) end)
         C_Timer.After(3, function()
             if IsInGroup and IsInGroup() and C_ChatInfo then
-                C_ChatInfo.SendAddonMessage(PREFIX, "R", (IsInRaid and IsInRaid()) and "RAID" or "PARTY")
+                C_ChatInfo.SendAddonMessage(PREFIX, "R", groupChannel())
             end
             FG:BroadcastGroupInfo(true)
             FG:BroadcastNeeds(true)
@@ -342,7 +348,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
             end
         end
         if IsInGroup and IsInGroup() and C_ChatInfo then
-            C_ChatInfo.SendAddonMessage(PREFIX, "R", (IsInRaid and IsInRaid()) and "RAID" or "PARTY")
+            C_ChatInfo.SendAddonMessage(PREFIX, "R", groupChannel())
         end
         FG:BroadcastGroupInfo(true)
         FG:BroadcastNeeds(true)
