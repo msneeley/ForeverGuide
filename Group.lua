@@ -371,7 +371,7 @@ end)
 ---------------------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------------------
-local ROW_H, WIDTH = 46, 300
+local WIDTH, ROW_GAP = 320, 9   -- rows size to their text; gap + divider between people
 
 local function classColor(class)
     local c = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
@@ -424,15 +424,22 @@ local function getRow(f, i)
     local row = f.rows[i]
     if row then return row end
     row = CreateFrame("Frame", nil, f)
-    row:SetSize(WIDTH - 16, ROW_H)
-    row:SetPoint("TOPLEFT", 8, -24 - (i - 1) * ROW_H)
+    row:SetSize(WIDTH - 20, 40)
+    if i > 1 then   -- thin divider above everyone but you
+        row.sep = row:CreateTexture(nil, "ARTWORK")
+        row.sep:SetColorTexture(1, 1, 1, 0.12)
+        row.sep:SetHeight(1)
+        row.sep:SetPoint("BOTTOMLEFT", row, "TOPLEFT", 0, math.floor(ROW_GAP / 2))
+        row.sep:SetPoint("BOTTOMRIGHT", row, "TOPRIGHT", 0, math.floor(ROW_GAP / 2))
+    end
     row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.name:SetPoint("TOPLEFT", 0, 0)
-    row.name:SetWidth(WIDTH - 16)
+    row.name:SetWidth(WIDTH - 20)
     row.name:SetJustifyH("LEFT")
+    if row.name.SetWordWrap then row.name:SetWordWrap(false) end
     row.bar = CreateFrame("StatusBar", nil, row)
-    row.bar:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
-    row.bar:SetSize(WIDTH - 16, 6)
+    row.bar:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -3)
+    row.bar:SetSize(WIDTH - 20, 6)
     row.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     row.bar:SetStatusBarColor(0.6, 0.2, 0.8)
     row.bar:SetMinMaxValues(0, 1)
@@ -440,10 +447,16 @@ local function getRow(f, i)
     row.rest:SetColorTexture(0.2, 0.4, 0.9, 0.5)
     row.rest:SetPoint("LEFT")
     row.rest:SetHeight(6)
+    row.status = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.status:SetPoint("TOPLEFT", row.bar, "BOTTOMLEFT", 0, -3)
+    row.status:SetWidth(WIDTH - 20)
+    row.status:SetJustifyH("LEFT")
+    if row.status.SetWordWrap then row.status:SetWordWrap(false) end
     row.info = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.info:SetPoint("TOPLEFT", row.bar, "BOTTOMLEFT", 0, -2)
-    row.info:SetWidth(WIDTH - 16)
+    row.info:SetPoint("TOPLEFT", row.status, "BOTTOMLEFT", 0, -2)
+    row.info:SetWidth(WIDTH - 20)
     row.info:SetJustifyH("LEFT")
+    row.info:SetSpacing(1)
     f.rows[i] = row
     return row
 end
@@ -452,15 +465,15 @@ local function fill(row, name, d)
     local pct = (d.xpMax and d.xpMax > 0) and d.xp / d.xpMax or 0
     local restPct = (d.xpMax and d.xpMax > 0) and math.min(1, (d.xp + (d.rested or 0)) / d.xpMax) or 0
     row.bar:SetValue(pct)
-    row.rest:SetWidth(math.max(1, (WIDTH - 16) * restPct))
+    row.rest:SetWidth(math.max(1, (WIDTH - 20) * restPct))
     local fed = d.fed and "|cff00ff00Fed|r" or "|cffff8040Hungry|r"
     local hearth = (d.hearth or 0) > 0 and ("|cffff4040HS %dm|r"):format(math.ceil(d.hearth / 60)) or "|cff00ff00HS|r"
     local dur = (d.dur or 100) < 30 and ("|cffff4040Dur %d%%|r"):format(math.floor(d.dur)) or ("Dur %d%%"):format(math.floor(d.dur or 100))
     local fl = math.floor
-    row.name:SetText(("%s%s|r  L%d  %d%%%s   %s  Food %d  %s  %s  Bags %d"):format(
+    row.name:SetText(("%s%s|r   L%d   %d%%%s"):format(
         classColor(d.class), name, fl(d.level or 0), fl(pct * 100),
-        (d.rested or 0) > 0 and ("  |cff6699ff+%d%% rested|r"):format(fl((d.rested / (d.xpMax or 1)) * 100)) or "",
-        fed, fl(d.food or 0), hearth, dur, fl(d.bags or 0)))
+        (d.rested or 0) > 0 and ("   |cff6699ff+%d%% rested|r"):format(fl((d.rested / (d.xpMax or 1)) * 100)) or ""))
+    row.status:SetText(("%s    Food %d    %s    %s    Bags %d"):format(fed, fl(d.food or 0), hearth, dur, fl(d.bags or 0)))
     local profs = {}
     for _, p in ipairs(d.profs or {}) do table.insert(profs, ("%s %d"):format(SHORT[p[1]] or p[1], math.floor(p[2] or 0))) end
     row.info:SetText(table.concat(profs, " · ") .. ((d.zone and d.zone ~= "") and ("\n" .. d.zone) or "")
@@ -489,7 +502,8 @@ function FG:UpdateGroupPanel()
                 local row = getRow(f, n)
                 row.bar:SetValue(0)
                 row.rest:SetWidth(1)
-                row.name:SetText(("%s%s|r  L%d  |cff888888(no ForeverGuide)|r"):format(classColor(class), name, math.floor(UnitLevel(unit) or 0)))
+                row.name:SetText(("%s%s|r   L%d"):format(classColor(class), name, math.floor(UnitLevel(unit) or 0)))
+                row.status:SetText("|cff888888(no ForeverGuide)|r")
                 row.info:SetText("")
                 row:Show()
             end
@@ -500,5 +514,16 @@ function FG:UpdateGroupPanel()
     local highest = UnitLevel("player")
     for _, d in pairs(self.groupData) do highest = math.max(highest, d.level or 0) end
     f.title:SetText(n > 1 and (highest - lowest >= 2 and ("Group  |cffff8040levels %d-%d - help the lowest catch up|r"):format(math.floor(lowest), math.floor(highest)) or "Group") or "Group (solo)")
-    f:SetHeight(28 + n * ROW_H)
+    -- stack the rows by their real height so long lines never run into the next person
+    local y = -28
+    for i = 1, n do
+        local row = f.rows[i]
+        local function h(fs) return (fs:GetText() or "") ~= "" and (fs:GetStringHeight() or 12) or 0 end
+        local height = h(row.name) + 3 + 6 + 3 + h(row.status) + (h(row.info) > 0 and 2 + h(row.info) or 0)
+        row:ClearAllPoints()
+        row:SetPoint("TOPLEFT", 10, y)
+        row:SetHeight(height)
+        y = y - height - ROW_GAP
+    end
+    f:SetHeight(-y + 6 - ROW_GAP)
 end
