@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.8 (not released yet)
+## v0.12.8
 - Buff bar: the weapon imbue check (shaman imbues, rogue poisons) works in Forever. Forever's weapon
   enchant API returns nothing, so the addon reads the weapon's tooltip ("Rockbiter 1 (58 min)") - it
   was red even with Rockbiter on.
@@ -13,9 +13,9 @@
   users in a queued group can see each other.
 - XP report reminders at the end of each guide section (levels 12, 16, 21, 25, 30, 35): the report
   window opens, a raid-warning style message and a sound. Switch off in /fg options.
-- Small groups: before each dungeon the guide says "Find N more" until the party has 5 (or you
-  enter); the time spent finding a group is tracked.
 
 ## v0.12.7
 - First public release.
 - XP tracker: /fg xp report ends with spreadsheet rows, /fg xp export, /fg xp run 1|2|solo.
+- Small groups: before each dungeon the guide says "Find N more" until the party has 5 (or you
+  enter); the time spent finding a group is tracked.
