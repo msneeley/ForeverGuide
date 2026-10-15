@@ -14,6 +14,15 @@ local function groupChannel()
     return (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
 end
 
+-- Forever characters have surnames: addon messages come from "Xenith Rastak" (maybe
+-- with "-Realm") while UnitName("party1") is "Xenith". Everything is keyed by the
+-- first name, the way the party frames name people.
+function FG:ShortName(name)
+    if not name then return name end
+    name = Ambiguate and Ambiguate(name, "short") or name
+    return name:match("^[^%s%-]+") or name
+end
+
 FG.groupData = {}   -- [name] = { level, xp, xpMax, rested, zone, step, fed, food, hearth, dur, bags, profs = {...}, seen }
 
 ---------------------------------------------------------------------------
@@ -328,15 +337,15 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, msg, _, sender = ...
         if prefix ~= PREFIX then return end
-        sender = Ambiguate and Ambiguate(sender, "short") or sender
-        if sender == UnitName("player") then return end
+        sender = FG:ShortName(sender)
+        if sender == FG:ShortName(UnitName("player")) then return end
         FG:DecodeMessage(sender, msg)
     elseif event == "GROUP_ROSTER_UPDATE" then
         -- drop people who left, ask newcomers for their info
         local inGroup = {}
         for i = 1, (GetNumGroupMembers and GetNumGroupMembers() or 0) do
             local n = UnitName((IsInRaid and IsInRaid()) and ("raid" .. i) or ("party" .. i))
-            if n then inGroup[n] = true end
+            if n then inGroup[FG:ShortName(n)] = true end
         end
         for n in pairs(FG.groupData) do
             if not inGroup[n] then
@@ -472,7 +481,7 @@ function FG:UpdateGroupPanel()
         local name = UnitExists and UnitExists(unit) and UnitName(unit)
         if name then
             n = n + 1
-            local d = self.groupData[name]
+            local d = self.groupData[self:ShortName(name)]
             if d then
                 fill(getRow(f, n), name, d)
             else
