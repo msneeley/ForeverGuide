@@ -317,7 +317,27 @@ local function applies(c, m, ctx)
 end
 
 -- Status of check c on member m: "ok" / "low" / "missing" / "unknown", plus details
-local IMBUE_WORDS = { "Rockbiter", "Flametongue", "Frostbrand", "Windfury Weapon", "Poison" }
+-- Forever: GetWeaponEnchantInfo() returns nil even with Rockbiter on, but the weapon's
+-- tooltip has the green line "Rockbiter 1 (58 min)". Read that (main hand, then off hand).
+local UNIT_SECONDS = { sec = 1, secs = 1, min = 60, mins = 60, hr = 3600, hrs = 3600, hour = 3600, hours = 3600 }
+local tipCache, tipCacheAt = nil, -10
+local function tooltipImbue()
+    if GetTime() - tipCacheAt < 2 then return tipCache end
+    tipCacheAt, tipCache = GetTime(), false
+    if not (C_TooltipInfo and C_TooltipInfo.GetInventoryItem) then return false end
+    for _, slot in ipairs({ 16, 17 }) do
+        local info = C_TooltipInfo.GetInventoryItem("player", slot)
+        for _, line in ipairs(info and info.lines or {}) do
+            local name, n, unit = (line.leftText or ""):match("^(.-%S) %((%d+) (%a+)%)$")
+            if name and UNIT_SECONDS[unit:lower()] then
+                tipCache = { name = name, t = tonumber(n) * UNIT_SECONDS[unit:lower()] }
+                return tipCache
+            end
+        end
+    end
+    return tipCache
+end
+
 local function status(c, m, set)
     if m.unit ~= "player" and not UnitIsVisible(m.unit) then return "unknown" end
     if UnitIsDeadOrGhost(m.unit) then return "unknown" end
@@ -353,16 +373,9 @@ local function status(c, m, set)
     elseif c.weapon then
         local has, ms = GetWeaponEnchantInfo()
         if not has then
-            -- Forever shows shaman imbues (and maybe poisons) as a buff on you, not a weapon enchant
-            for n, a in pairs(set) do
-                for _, w in ipairs(IMBUE_WORDS) do
-                    if n:find(w, 1, true) then
-                        local t = timeLeft(a)
-                        return (t and t < LOW) and "low" or "ok", n, t
-                    end
-                end
-            end
-            return "missing"
+            local tip = tooltipImbue()
+            if not tip then return "missing" end
+            return tip.t < LOW and "low" or "ok", tip.name, tip.t
         end
         local t = ms and ms / 1000
         return (t and t < LOW) and "low" or "ok", nil, t
