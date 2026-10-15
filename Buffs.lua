@@ -253,7 +253,7 @@ FG.buffChecks = {
     -- Windfury once you have it, else Grace of Air. Highest rank is cast.
     { key = "earthTotem", label = "Strength of Earth Totem", totem = 2, spells = { "Strength of Earth Totem" },
       icon = "Interface\\Icons\\Spell_Nature_EarthBindTotem", button = "ForeverGuideTotemEarth" },
-    { key = "airTotem", label = "Air totem (Windfury / Grace of Air)", totem = 4, spells = { "Windfury Totem", "Grace of Air Totem" },
+    { key = "airTotem", label = "Air totem (Windfury/Grace)", totem = 4, spells = { "Windfury Totem", "Grace of Air Totem" },
       icon = "Interface\\Icons\\Spell_Nature_Windfury", button = "ForeverGuideTotemAir" },
     { key = "imbue", label = "Weapon imbue / poison", weapon = { SHAMAN = 1, ROGUE = 20 },
       icon = "Interface\\Icons\\Spell_Nature_RockBiter" },
@@ -317,6 +317,7 @@ local function applies(c, m, ctx)
 end
 
 -- Status of check c on member m: "ok" / "low" / "missing" / "unknown", plus details
+local IMBUE_WORDS = { "Rockbiter", "Flametongue", "Frostbrand", "Windfury Weapon", "Poison" }
 local function status(c, m, set)
     if m.unit ~= "player" and not UnitIsVisible(m.unit) then return "unknown" end
     if UnitIsDeadOrGhost(m.unit) then return "unknown" end
@@ -351,7 +352,18 @@ local function status(c, m, set)
         return "missing", want
     elseif c.weapon then
         local has, ms = GetWeaponEnchantInfo()
-        if not has then return "missing" end
+        if not has then
+            -- Forever shows shaman imbues (and maybe poisons) as a buff on you, not a weapon enchant
+            for n, a in pairs(set) do
+                for _, w in ipairs(IMBUE_WORDS) do
+                    if n:find(w, 1, true) then
+                        local t = timeLeft(a)
+                        return (t and t < LOW) and "low" or "ok", n, t
+                    end
+                end
+            end
+            return "missing"
+        end
         local t = ms and ms / 1000
         return (t and t < LOW) and "low" or "ok", nil, t
     elseif c.elixir then
@@ -838,6 +850,9 @@ function FG:ToggleBuffOptions()
             cb:SetPoint("TOPLEFT", 10, y)
             local label = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
+            label:SetWidth(156)   -- stop before the T/H/M/C boxes
+            label:SetJustifyH("LEFT")
+            if label.SetWordWrap then label:SetWordWrap(false) end
             label:SetText(e.label)
             cb:SetScript("OnClick", function(self)
                 if e.key == "_give" then

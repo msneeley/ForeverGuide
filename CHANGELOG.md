@@ -1,6 +1,9 @@
 # Changelog
 
 ## v0.12.8 (not released yet)
+- Buff bar: the shaman weapon imbue check now sees Rockbiter (and other imbues) when Forever shows it
+  as a buff on you instead of a weapon enchant - it was red even with Rockbiter on.
+- Buff checks window (/fg buffs): long names no longer run into the T/H/M/C boxes.
 - Party panel: party members from other realms no longer show "(no ForeverGuide)". Forever writes
   cross-realm names as "Name Realm", so the addon now matches people by first name.
 - Party panel: roomier layout - name / level / XP on one line, Fed / Food / HS / Dur / Bags under the
